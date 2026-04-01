@@ -4,13 +4,10 @@ import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import com.studwarcraft.exception.PlayerException;
 import com.studwarcraft.model.Player;
 import com.studwarcraft.service.PlayerService;
 
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 @Path("/player")
 public class PlayerResource {
@@ -19,34 +16,45 @@ public class PlayerResource {
     private PlayerService playerService;
 
     @POST
-    @Consumes(MediaType.APPLICATION_JSON)
     @Path("/add")
+    @Consumes(MediaType.APPLICATION_JSON)
     public Response addPlayer(Player player) {
-        try {
-            playerService.createPlayer(player);
-        } catch (PlayerException e) {
-            return Response.status(Response.Status.BAD_REQUEST).entity(e.getMessage()).build();
-        }
+        playerService.createPlayer(player);
         return Response.ok().build();
     }
 
     @GET
-    @Produces(MediaType.APPLICATION_JSON)
     @Path("/all")
+    @Produces(MediaType.APPLICATION_JSON)
     public Response getAllPlayers() {
-        try {
-            List<Player> players = playerService.getAllPlayers();
+        List<Player> players = playerService.getAllPlayers();
+        return Response.ok(players).build();
+    }
 
-            List<Map<String, String>> simplePlayers = players.stream()
-                    .map(p -> Map.of(
-                            "name", p.getName(),
-                            "lastname", p.getLastname()
-                    ))
-                    .collect(Collectors.toList());
-
-            return Response.ok(simplePlayers).build();
-        } catch (PlayerException e) {
-            return Response.status(Response.Status.NO_CONTENT).entity(e.getMessage()).build();
+    @GET
+    @Path("/getPlayerById/{id}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getPlayerById(@PathParam("id") Long id) {
+        Player player = playerService.getPlayerById(id);
+        if (player == null) {
+            return Response.status(Response.Status.NOT_FOUND).build();
         }
+        return Response.ok(player).build();
+    }
+
+    @GET
+    @Path("/getPlayersByName")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getPlayersByName(@QueryParam("name") String name) {
+        List<Player> players = playerService.getPlayersByName(name);
+        return Response.ok(players).build();
+    }
+
+    @GET
+    @Path("/getPlayersByRole")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getPlayersByRole(@QueryParam("role") String role) {
+        List<Player> players = playerService.getPlayersByRole(role);
+        return Response.ok(players).build();
     }
 }

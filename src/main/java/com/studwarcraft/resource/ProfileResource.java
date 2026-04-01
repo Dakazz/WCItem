@@ -1,13 +1,12 @@
 package com.studwarcraft.resource;
 
+import com.studwarcraft.exception.PlayerException;
+import com.studwarcraft.model.Profile;
+import com.studwarcraft.service.ProfileService;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import com.studwarcraft.exception.ProfileException;
-import com.studwarcraft.model.Profile;
-import com.studwarcraft.service.ProfileService;
-
 import java.util.List;
 
 @Path("/profile")
@@ -22,7 +21,7 @@ public class ProfileResource {
     public Response addProfile(Profile profile) {
         try {
             profileService.createProfile(profile);
-        } catch (ProfileException e) {
+        } catch (PlayerException e) {
             return Response.status(Response.Status.BAD_REQUEST).entity(e.getMessage()).build();
         }
         return Response.ok().build();
@@ -32,11 +31,23 @@ public class ProfileResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/all")
     public Response getAllProfiles() {
+        List<Profile> profiles = null;
         try {
-            List<Profile> profiles = profileService.getAllProfiles();
-            return Response.ok(profiles).build();
-        } catch (ProfileException e) {
+            profiles = profileService.getAllProfiles();
+        } catch (PlayerException e) {
             return Response.status(Response.Status.NO_CONTENT).entity(e.getMessage()).build();
         }
+        return Response.ok().entity(profiles).build();
+    }
+
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/getProfileByPlayerId")
+    public Response getProfileByPlayerId(@QueryParam("playerId") Long playerId) {
+        Profile profile = profileService.getProfileByPlayerId(playerId);
+        if(profile == null) {
+            return Response.status(Response.Status.NO_CONTENT).build();
+        }
+        return Response.ok().entity(profile).build();
     }
 }

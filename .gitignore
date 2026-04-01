@@ -1,5 +1,16 @@
-target/
+# .gitignore
+.idea/
+*.iml
+out/
 .settings/
 .classpath
 .project
+target/
+.mvn/
+mvnw
+mvnw.cmd
 *.log
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
