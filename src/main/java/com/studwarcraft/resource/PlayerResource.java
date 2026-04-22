@@ -1,11 +1,18 @@
 package com.studwarcraft.resource;
 
-import jakarta.inject.Inject;
-import jakarta.ws.rs.*;
-import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.Response;
+import com.studwarcraft.exception.PlayerException;
 import com.studwarcraft.model.Player;
 import com.studwarcraft.service.PlayerService;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 
 import java.util.List;
 
@@ -19,7 +26,11 @@ public class PlayerResource {
     @Path("/add")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response addPlayer(Player player) {
-        playerService.createPlayer(player);
+        try {
+            playerService.createPlayer(player);
+        } catch (PlayerException e) {
+            return Response.status(Response.Status.BAD_REQUEST).entity(e.getMessage()).build();
+        }
         return Response.ok().build();
     }
 
@@ -27,7 +38,12 @@ public class PlayerResource {
     @Path("/all")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getAllPlayers() {
-        List<Player> players = playerService.getAllPlayers();
+        List<Player> players = null;
+        try {
+            players = playerService.getAllPlayers();
+        } catch (PlayerException e) {
+            return Response.status(Response.Status.NO_CONTENT).entity(e.getMessage()).build();
+        }
         return Response.ok(players).build();
     }
 

@@ -2,13 +2,50 @@ package com.studwarcraft.model;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 @Entity
-@NamedQuery(name = Player.GET_ALL_PLAYERS, query = "SELECT p FROM Player p")
+@NamedQueries({
+        @NamedQuery(
+                name = Player.GET_ALL_PLAYERS,
+                query = "Select distinct p from Player p " +
+                        "left join fetch p.details " +
+                        "left join fetch p.profile " +
+                        "left join fetch p.timeZones"
+        ),
+        @NamedQuery(
+                name = Player.GET_PLAYER_BY_ID,
+                query = "Select distinct p from Player p " +
+                        "left join fetch p.details " +
+                        "left join fetch p.profile " +
+                        "left join fetch p.timeZones " +
+                        "where p.playerid = :idP"
+        ),
+        @NamedQuery(
+                name = Player.GET_PLAYERS_BY_NAME,
+                query = "Select distinct p from Player p " +
+                        "left join fetch p.details " +
+                        "left join fetch p.profile " +
+                        "left join fetch p.timeZones " +
+                        "where p.name = :nameP"
+        ),
+        @NamedQuery(
+                name = Player.GET_PLAYERS_BY_ROLE,
+                query = "Select distinct p from Player p " +
+                        "left join fetch p.profile " +
+                        "left join fetch p.details " +
+                        "left join fetch p.timeZones " +
+                        "where p.profile.role = :roleP"
+        )
+})
 public class Player {
 
     public static final String GET_ALL_PLAYERS = "GetAllPlayers";
+    public static final String GET_PLAYER_BY_ID = "GetPlayerById";
+    public static final String GET_PLAYERS_BY_NAME = "GetPlayersByName";
+    public static final String GET_PLAYERS_BY_ROLE = "GetPlayersByRole";
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "player_seq")
@@ -25,6 +62,10 @@ public class Player {
     @OneToOne(mappedBy = "player", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @JsonManagedReference
     private Profile profile;
+
+    @OneToMany(mappedBy = "player", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @JsonManagedReference(value = "player-time-zones")
+    private List<PlayerTimeZone> timeZones = new ArrayList<>();
 
     public Player() {}
 
@@ -44,6 +85,13 @@ public class Player {
     public void setDetails(PlayerDetails details) { this.details = details; }
     public Profile getProfile() { return profile; }
     public void setProfile(Profile profile) { this.profile = profile; }
+    public List<PlayerTimeZone> getTimeZones() { return timeZones; }
+    public void setTimeZones(List<PlayerTimeZone> timeZones) { this.timeZones = timeZones; }
+
+    public void addTimeZone(PlayerTimeZone timeZone) {
+        timeZones.add(timeZone);
+        timeZone.setPlayer(this);
+    }
 
     @Override
     public boolean equals(Object o) {
