@@ -3,8 +3,10 @@ package com.studwarcraft.model;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 @Entity
 @NamedQueries({
@@ -13,7 +15,8 @@ import java.util.Objects;
                 query = "Select distinct p from Player p " +
                         "left join fetch p.details " +
                         "left join fetch p.profile " +
-                        "left join fetch p.timeZones"
+                        "left join fetch p.timeZones " +
+                        "left join fetch p.currencyResponses"
         ),
         @NamedQuery(
                 name = Player.GET_PLAYER_BY_ID,
@@ -21,6 +24,7 @@ import java.util.Objects;
                         "left join fetch p.details " +
                         "left join fetch p.profile " +
                         "left join fetch p.timeZones " +
+                        "left join fetch p.currencyResponses " +
                         "where p.playerid = :idP"
         ),
         @NamedQuery(
@@ -29,6 +33,7 @@ import java.util.Objects;
                         "left join fetch p.details " +
                         "left join fetch p.profile " +
                         "left join fetch p.timeZones " +
+                        "left join fetch p.currencyResponses " +
                         "where p.name = :nameP"
         ),
         @NamedQuery(
@@ -37,6 +42,7 @@ import java.util.Objects;
                         "left join fetch p.profile " +
                         "left join fetch p.details " +
                         "left join fetch p.timeZones " +
+                        "left join fetch p.currencyResponses " +
                         "where p.profile.role = :roleP"
         )
 })
@@ -67,6 +73,10 @@ public class Player {
     @JsonManagedReference(value = "player-time-zones")
     private List<PlayerTimeZone> timeZones = new ArrayList<>();
 
+    @OneToMany(mappedBy = "player", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @JsonManagedReference(value = "currency")
+    private Set<CurrencyResponse> currencyResponses = new HashSet<>();
+
     public Player() {}
 
     public Player(Long playerid, String name, String lastname) {
@@ -87,10 +97,17 @@ public class Player {
     public void setProfile(Profile profile) { this.profile = profile; }
     public List<PlayerTimeZone> getTimeZones() { return timeZones; }
     public void setTimeZones(List<PlayerTimeZone> timeZones) { this.timeZones = timeZones; }
+    public Set<CurrencyResponse> getCurrencyResponses() { return currencyResponses; }
+    public void setCurrencyResponses(Set<CurrencyResponse> currencyResponses) { this.currencyResponses = currencyResponses; }
 
     public void addTimeZone(PlayerTimeZone timeZone) {
         timeZones.add(timeZone);
         timeZone.setPlayer(this);
+    }
+
+    public void addCurrencyResponse(CurrencyResponse currencyResponse) {
+        currencyResponses.add(currencyResponse);
+        currencyResponse.setPlayer(this);
     }
 
     @Override
